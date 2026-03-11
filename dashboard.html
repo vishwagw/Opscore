@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OpsCore · Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080c14;--surface:#0d1420;--surface2:#111827;
+  --border:rgba(255,255,255,0.07);--border-bright:rgba(255,255,255,0.14);
+  --text:#e8edf5;--muted:#5a6478;
+  --accent:#f59e0b;--accent-dim:rgba(245,158,11,0.12);--accent-dark:#d4a832;
+  --emerald:#10b981;--emerald-dim:rgba(16,185,129,0.1);
+  --crimson:#ef4444;--crimson-dim:rgba(239,68,68,0.1);
+  --blue:#3b82f6;--blue-dim:rgba(59,130,246,0.1);
+  --font-head:'Syne',sans-serif;--font-mono:'DM Mono',monospace;--font-body:'Instrument Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh}
+
+/* AUTH LOADING SCREEN */
+#auth-loading{
+  position:fixed;inset:0;background:var(--bg);z-index:999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+}
+.loading-logo{
+  width:48px;height:48px;background:linear-gradient(135deg,var(--accent-dark),var(--accent));
+  border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-head);font-weight:800;font-size:22px;color:#080c14;
+  margin-bottom:8px;
+}
+.loading-text{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:1.5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite}
+
+/* MAIN APP hidden until auth */
+#app{display:none}
+
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+@keyframes tickerMove{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes fadeSlide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+@keyframes barGrow{from{width:0}}
+
+.pulse-dot{width:8px;height:8px;border-radius:50%;animation:pulse 2s infinite;flex-shrink:0}
+.card-hover{transition:border-color 0.2s,box-shadow 0.2s}
+.card-hover:hover{border-color:var(--border-bright)!important;box-shadow:0 0 20px rgba(255,255,255,0.03)}
+
+/* HEADER */
+header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 24px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);
+}
+.header-left{display:flex;align-items:center;gap:20px}
+.logo-icon{
+  width:30px;height:30px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-head);font-weight:800;font-size:14px;color:#080c14;
+  background:linear-gradient(135deg,var(--accent-dark),var(--accent));
+  transition:background 0.3s;
+}
+.logo-name{font-family:var(--font-head);font-weight:700;font-size:15px;letter-spacing:0.3px}
+.logo-sub{font-family:var(--font-mono);font-size:8px;color:var(--muted);letter-spacing:1px}
+.divider-v{width:1px;height:28px;background:var(--border)}
+nav{display:flex;gap:2px}
+nav button{
+  background:transparent;border:none;color:var(--muted);
+  font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  padding:5px 12px;border-radius:5px;cursor:pointer;transition:all 0.15s;
+}
+nav button.active{background:var(--accent-dim);color:var(--accent)}
+nav button:hover:not(.active){color:var(--text)}
+.header-right{display:flex;align-items:center;gap:16px}
+.critical-badge{
+  display:flex;align-items:center;gap:6px;
+  background:var(--crimson-dim);border:1px solid rgba(239,68,68,0.3);
+  border-radius:5px;padding:4px 10px;
+}
+.critical-badge span{font-family:var(--font-mono);font-size:10px;color:var(--crimson);letter-spacing:0.5px}
+.live-badge{display:flex;align-items:center;gap:6px}
+.live-badge span{font-family:var(--font-mono);font-size:10px;color:var(--emerald);letter-spacing:0.5px}
+.last-update{font-family:var(--font-mono);font-size:10px;color:var(--muted)}
+.logout-btn{
+  background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 14px;
+  font-family:var(--font-mono);font-size:10px;letter-spacing:1px;
+  color:var(--muted);cursor:pointer;transition:all 0.15s;
+}
+.logout-btn:hover{color:var(--crimson);border-color:rgba(239,68,68,0.3)}
+
+/* TICKER */
+.ticker{background:#0a0f1a;border-bottom:1px solid var(--border);padding:7px 0;overflow:hidden}
+.ticker-inner{display:flex;animation:tickerMove 40s linear infinite;white-space:nowrap;width:max-content}
+.ticker-item{font-family:var(--font-mono);font-size:10px;color:var(--muted);padding:0 8px;letter-spacing:0.3px}
+
+/* MAIN */
+main{padding:20px 24px;max-width:1600px;margin:0 auto}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.stat-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.stat-label{font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.stat-icon{font-size:14px}
+.stat-value{font-family:var(--font-head);font-size:26px;font-weight:700;line-height:1}
+.stat-sub{margin-top:6px;font-family:var(--font-mono);font-size:10px}
+.main-grid{display:grid;grid-template-columns:1fr 340px;gap:16px}
+.left-col{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.card-title{font-family:var(--font-head);font-weight:700;font-size:14px}
+.badge{font-family:var(--font-mono);font-size:9px;letter-spacing:1px;padding:3px 8px;border-radius:4px}
+.badge-blue{color:var(--blue);background:var(--blue-dim)}
+.badge-crimson{color:var(--crimson);background:var(--crimson-dim)}
+.badge-emerald{color:var(--emerald);background:var(--emerald-dim)}
+.map-wrap{height:280px;background:radial-gradient(ellipse at center,#0d1a2e 0%,#080c14 70%);position:relative}
+.map-wrap svg{width:100%;height:100%;opacity:0.9}
+.map-legend{display:flex;gap:12px}
+.map-legend-item{display:flex;align-items:center;gap:4px}
+.map-legend-dot{width:6px;height:6px;border-radius:50%}
+.map-legend-label{font-family:var(--font-mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.card-body{padding:6px 18px 14px}
+table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px}
+thead th{padding:6px 8px;text-align:left;color:var(--muted);letter-spacing:1px;font-weight:400;font-size:9px;border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
+tbody tr:hover{background:rgba(255,255,255,0.02)}
+tbody td{padding:9px 8px}
+.status-pill{padding:2px 7px;border-radius:3px;font-size:9px;letter-spacing:1px}
+.load-bar-wrap{display:flex;align-items:center;gap:6px}
+.load-bar-bg{flex:1;height:3px;background:var(--border);border-radius:2px;min-width:40px}
+.load-bar-fill{height:100%;border-radius:2px}
+.pricing-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.pricing-route{flex:1;font-family:var(--font-mono);font-size:11px}
+.pricing-base{font-family:var(--font-mono);font-size:10px;color:var(--muted);text-decoration:line-through}
+.pricing-current{font-family:var(--font-mono);font-size:12px;font-weight:500}
+.pricing-pct{font-family:var(--font-mono);font-size:10px;padding:2px 6px;border-radius:3px}
+.alert-sticky{position:sticky;top:68px}
+.filter-row{display:flex;gap:6px;margin-top:4px}
+.filter-btn{
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  font-family:var(--font-mono);font-size:8px;letter-spacing:0.8px;
+  padding:2px 7px;border-radius:4px;cursor:pointer;transition:all 0.15s;
+}
+.filter-btn.active{background:var(--accent-dim);border-color:rgba(245,158,11,0.3);color:var(--accent)}
+.alert-scroll{padding:14px;max-height:580px;overflow-y:auto}
+.alert-feed{display:flex;flex-direction:column;gap:6px}
+.alert-item{border-radius:6px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;animation:fadeSlide 0.4s ease}
+.alert-icon{font-family:var(--font-mono);font-size:11px;margin-top:1px;min-width:20px}
+.alert-body{flex:1;min-width:0}
+.alert-meta{display:flex;gap:6px;align-items:center;margin-bottom:3px}
+.alert-type{font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase}
+.alert-region{font-family:var(--font-mono);font-size:9px;color:var(--muted)}
+.alert-msg{font-size:12px;color:var(--text);line-height:1.4}
+.alert-time{font-family:var(--font-mono);font-size:9px;color:var(--muted);white-space:nowrap;margin-top:2px}
+.risk-dist{margin:0 14px 14px;background:var(--surface2);border-radius:8px;padding:12px 14px;border:1px solid var(--border)}
+.risk-dist-label{font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:10px}
+.risk-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.risk-level-label{font-family:var(--font-mono);font-size:9px;width:60px;letter-spacing:0.5px}
+.risk-bar-bg{flex:1;height:4px;background:var(--border);border-radius:2px}
+.risk-bar-fill{height:100%;border-radius:2px;transition:width 0.5s ease}
+.risk-count{font-family:var(--font-mono);font-size:10px;width:12px;text-align:right}
+.briefing-wrap{padding:0 14px 14px}
+.briefing-btn{
+  width:100%;padding:11px;
+  border:none;border-radius:8px;cursor:pointer;
+  font-family:var(--font-head);font-weight:700;font-size:12px;letter-spacing:0.5px;
+  color:#080c14;transition:opacity 0.15s;
+  background:linear-gradient(135deg,var(--accent-dark),var(--accent));
+}
+.briefing-btn:hover{opacity:0.88}
+
+/* BRANDING PANEL */
+.branding-bar{
+  background:var(--surface2);border-bottom:1px solid var(--border);
+  padding:8px 24px;display:flex;align-items:center;gap:16px;
+}
+.branding-label{font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:1px}
+.branding-input{
+  background:var(--surface);border:1px solid var(--border);border-radius:5px;
+  color:var(--text);font-family:var(--font-body);font-size:12px;
+  padding:4px 10px;outline:none;transition:border-color 0.2s;
+}
+.branding-input:focus{border-color:var(--accent)}
+.color-preview{width:22px;height:22px;border-radius:4px;cursor:pointer;border:2px solid var(--border)}
+.branding-save{
+  background:var(--accent);color:#080c14;border:none;border-radius:5px;
+  font-family:var(--font-mono);font-size:9px;letter-spacing:0.8px;font-weight:600;
+  padding:5px 14px;cursor:pointer;transition:opacity 0.15s;
+}
+.branding-save:hover{opacity:0.85}
+.branding-saved{color:var(--emerald);font-family:var(--font-mono);font-size:9px;letter-spacing:0.5px;display:none}
+
+@media(max-width:1024px){.main-grid{grid-template-columns:1fr}.alert-sticky{position:static}.stat-row{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<!-- AUTH LOADING SCREEN -->
+<div id="auth-loading">
+  <div class="loading-logo" id="loading-logo">O</div>
+  <div class="loading-text">AUTHENTICATING</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- MAIN APP (shown after auth) -->
+<div id="app">
+  <header>
+    <div class="header-left">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="logo-icon" id="header-logo-icon">O</div>
+        <div>
+          <div class="logo-name" id="header-agency-name">OpsCore</div>
+          <div class="logo-sub">TRAVEL INTELLIGENCE</div>
+        </div>
+      </div>
+      <div class="divider-v"></div>
+      <nav id="nav">
+        <button class="active" data-tab="overview">overview</button>
+        <button data-tab="intelligence">intelligence</button>
+        <button data-tab="flights">flights</button>
+        <button data-tab="pricing">pricing</button>
+        <button data-tab="health">health</button>
+      </nav>
+    </div>
+    <div class="header-right">
+      <div class="critical-badge" id="critical-badge">
+        <div class="pulse-dot" style="background:var(--crimson)"></div>
+        <span id="critical-count-label">2 CRITICAL</span>
+      </div>
+      <div class="live-badge">
+        <div class="pulse-dot" style="background:var(--emerald)"></div>
+        <span>LIVE</span>
+      </div>
+      <div class="last-update" id="last-update">Updated just now</div>
+      <button class="logout-btn" onclick="handleLogout()">SIGN OUT</button>
+    </div>
+  </header>
+
+  <!-- BRANDING BAR -->
+  <div class="branding-bar">
+    <span class="branding-label">AGENCY BRANDING:</span>
+    <span class="branding-label">NAME</span>
+    <input class="branding-input" id="b-name" style="width:200px" placeholder="Agency Name"/>
+    <span class="branding-label">ACCENT COLOUR</span>
+    <input type="color" class="color-preview" id="b-color" value="#f59e0b" oninput="previewColor(this.value)"/>
+    <span class="branding-label" id="b-color-hex">#f59e0b</span>
+    <button class="branding-save" onclick="saveBranding()">SAVE BRANDING</button>
+    <span class="branding-saved" id="b-saved">✓ Saved</span>
+  </div>
+
+  <!-- TICKER -->
+  <div class="ticker">
+    <div class="ticker-inner" id="ticker"></div>
+  </div>
+
+  <!-- MAIN -->
+  <main>
+    <div class="stat-row">
+      <div class="stat-card card-hover">
+        <div class="stat-card-head"><span class="stat-label">Active Alerts</span><span class="stat-icon" style="color:var(--crimson)">◈</span></div>
+        <div class="stat-value" id="stat-alerts">6</div>
+        <div class="stat-sub" id="stat-alerts-sub" style="color:var(--crimson)">2 critical · 3 high</div>
+      </div>
+      <div class="stat-card card-hover">
+        <div class="stat-card-head"><span class="stat-label">Routes Monitored</span><span class="stat-icon" style="color:var(--blue)">▲</span></div>
+        <div class="stat-value">2,841</div>
+        <div class="stat-sub" id="stat-routes-sub" style="color:var(--blue)">+12 new feeds</div>
+      </div>
+      <div class="stat-card card-hover">
+        <div class="stat-card-head"><span class="stat-label">Regions Tracked</span><span class="stat-icon" style="color:var(--accent)">◉</span></div>
+        <div class="stat-value">187</div>
+        <div class="stat-sub" style="color:var(--accent)">42 elevated risk zones</div>
+      </div>
+      <div class="stat-card card-hover">
+        <div class="stat-card-head"><span class="stat-label">Data Feeds</span><span class="stat-icon" style="color:var(--emerald)">✓</span></div>
+        <div class="stat-value">94</div>
+        <div class="stat-sub" style="color:var(--emerald)">All systems nominal</div>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <div class="left-col">
+        <!-- World Map -->
+        <div class="card card-hover">
+          <div class="card-head">
+            <div>
+              <span class="card-title">Global Risk Intelligence Map</span>
+              <span style="font-family:var(--font-mono);font-size:9px;color:var(--muted);margin-left:10px;letter-spacing:1px">LIVE · UPDATING</span>
+            </div>
+            <div class="map-legend">
+              <div class="map-legend-item"><div class="map-legend-dot" style="background:#ef4444"></div><span class="map-legend-label">critical</span></div>
+              <div class="map-legend-item"><div class="map-legend-dot" style="background:#f59e0b"></div><span class="map-legend-label">high</span></div>
+              <div class="map-legend-item"><div class="map-legend-dot" style="background:#3b82f6"></div><span class="map-legend-label">moderate</span></div>
+              <div class="map-legend-item"><div class="map-legend-dot" style="background:#10b981"></div><span class="map-legend-label">low</span></div>
+            </div>
+          </div>
+          <div class="map-wrap">
+            <svg viewBox="0 60 800 340" id="world-map">
+              <line x1="40" y1="120" x2="780" y2="120" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" stroke-dasharray="4,8"/>
+              <line x1="40" y1="180" x2="780" y2="180" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" stroke-dasharray="4,8"/>
+              <line x1="40" y1="240" x2="780" y2="240" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" stroke-dasharray="4,8"/>
+              <line x1="40" y1="300" x2="780" y2="300" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" stroke-dasharray="4,8"/>
+              <line x1="120" y1="70" x2="120" y2="380" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" stroke-dasharray="4,8"/>
+              <line x1="280" y1="70" x2="280" y2="380" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" stroke-dasharray="4,8"/>
+              <line x1="440" y1="70" x2="440" y2="380" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" stroke-dasharray="4,8"/>
+              <line x1="600" y1="70" x2="600" y2="380" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" stroke-dasharray="4,8"/>
+              <path d="M80,100 L200,90 L220,130 L240,160 L220,200 L180,230 L140,220 L100,190 L70,150 Z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>
+              <path d="M190,240 L250,230 L280,260 L290,320 L270,370 L230,380 L200,340 L180,290 Z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>
+              <path d="M400,100 L480,95 L500,120 L490,150 L450,160 L420,155 L390,140 Z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>
+              <path d="M400,165 L470,160 L500,190 L510,260 L490,320 L450,340 L400,330 L370,290 L360,230 L370,185 Z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>
+              <path d="M490,90 L720,80 L750,130 L740,180 L700,210 L640,220 L580,210 L530,190 L500,160 L485,120 Z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>
+              <path d="M640,270 L730,260 L760,290 L750,330 L700,350 L650,340 L630,310 Z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>
+              <g id="map-markers"></g>
+            </svg>
+          </div>
+        </div>
+        <!-- Flights -->
+        <div class="card card-hover">
+          <div class="card-head">
+            <span class="card-title">GDS Flight Safety Monitor</span>
+            <span class="badge badge-blue">GDS FEED</span>
+          </div>
+          <div class="card-body">
+            <table><thead><tr><th>FLIGHT</th><th>ROUTE</th><th>STATUS</th><th>DEP</th><th>ARR</th><th>LOAD</th></tr></thead>
+            <tbody id="flight-table-body"></tbody></table>
+          </div>
+        </div>
+        <!-- Pricing -->
+        <div class="card card-hover">
+          <div class="card-head">
+            <span class="card-title">Dynamic Pricing Engine</span>
+            <div style="display:flex;gap:8px">
+              <span class="badge badge-crimson">3 SURGES</span>
+              <span class="badge badge-emerald">2 DROPS</span>
+            </div>
+          </div>
+          <div class="card-body"><div id="pricing-list"></div></div>
+        </div>
+      </div>
+
+      <!-- Right: Alert Feed -->
+      <div>
+        <div class="card alert-sticky">
+          <div class="card-head" style="flex-direction:column;align-items:flex-start;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+              <div>
+                <span class="card-title">Intelligence Feed</span>
+                <div class="filter-row" id="filter-row">
+                  <button class="filter-btn active" data-filter="ALL">ALL</button>
+                  <button class="filter-btn" data-filter="GEOPOLITICAL">GEO</button>
+                  <button class="filter-btn" data-filter="HEALTH">HEALTH</button>
+                  <button class="filter-btn" data-filter="WEATHER">WX</button>
+                  <button class="filter-btn" data-filter="FLIGHT">FLIGHT</button>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px">
+                <div class="pulse-dot" style="background:var(--crimson)"></div>
+                <span style="font-family:var(--font-mono);font-size:9px;color:var(--crimson);letter-spacing:1px">LIVE</span>
+              </div>
+            </div>
+          </div>
+          <div class="alert-scroll"><div class="alert-feed" id="alert-feed"></div></div>
+          <div class="risk-dist">
+            <div class="risk-dist-label">RISK DISTRIBUTION</div>
+            <div id="risk-dist-rows"></div>
+          </div>
+          <div class="briefing-wrap">
+            <button class="briefing-btn" id="briefing-btn" onclick="handleBriefing()">↗ GENERATE BRIEFING REPORT</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── CONFIG ──
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── DATA ──
+const RISK_REGIONS = [
+  {id:"MEA",label:"Middle East",level:"critical",x:530,y:210},
+  {id:"EEU",label:"E. Europe",level:"high",x:490,y:148},
+  {id:"SEA",label:"SE Asia",level:"moderate",x:680,y:240},
+  {id:"WAF",label:"W. Africa",level:"high",x:430,y:255},
+  {id:"SAM",label:"S. America",level:"low",x:250,y:300},
+  {id:"NAM",label:"N. America",level:"low",x:155,y:165},
+  {id:"EUR",label:"Europe",level:"low",x:456,y:140},
+];
+const LEVEL_COLOR={critical:"#ef4444",high:"#f59e0b",moderate:"#3b82f6",low:"#10b981"};
+const TYPE_ICON={GEOPOLITICAL:"◈",HEALTH:"✚",WEATHER:"◉",FLIGHT:"▲",PRICING:"$"};
+const STATUS_COLOR={"ON TIME":"#10b981","DELAYED":"#f59e0b","REDUCED":"#3b82f6","CANCELLED":"#ef4444"};
+const TICKER_ITEMS=["⚠ BKK–SYD: Capacity -15% due to weather · ","↑ LHR–JFK: +$340 avg fare (7-day surge) · ","✓ CDG–DXB: Normal operations restored · ","⚠ FCO: ATC delays 45-90min · ","🔴 BGW: All commercial routes suspended · ","↑ MIA–CUN: Spring demand +42% · ","✓ SIN: Dengue advisory lifted · ","⚠ IST: Visa-on-arrival suspended for 14 nationalities · ","✈ CMB–DXB: SriLankan Airlines operating normally · ","⚠ CMB: Peak season surcharge in effect · "];
+const FLIGHTS=[{flight:"EK 204",from:"DXB",to:"LHR",status:"ON TIME",dep:"14:25",arr:"18:40",load:94},{flight:"QF 002",from:"SYD",to:"LAX",status:"DELAYED",dep:"21:30",arr:"20:15+1",load:78},{flight:"LH 401",from:"FRA",to:"JFK",status:"REDUCED",dep:"10:15",arr:"13:45",load:61},{flight:"UL 504",from:"CMB",to:"DXB",status:"ON TIME",dep:"08:15",arr:"10:45",load:87},{flight:"AA 100",from:"JFK",to:"LHR",status:"ON TIME",dep:"17:00",arr:"05:15+1",load:97}];
+const PRICING=[{route:"CMB → DXB",base:480,current:612,trend:"up",pct:"+28%"},{route:"CMB → LHR",base:720,current:980,trend:"up",pct:"+36%"},{route:"CMB → SIN",base:310,current:285,trend:"down",pct:"-8%"},{route:"CMB → KUL",base:260,current:242,trend:"down",pct:"-7%"},{route:"CMB → BKK",base:390,current:428,trend:"up",pct:"+10%"}];
+let alerts=[
+  {id:1,type:"GEOPOLITICAL",level:"critical",region:"Middle East",msg:"Travel ban extended — 3 carriers suspended routes to TLV",time:"2m ago"},
+  {id:2,type:"HEALTH",level:"high",region:"Southeast Asia",msg:"WHO advisory: Dengue outbreak escalation in Bangkok, Kuala Lumpur",time:"11m ago"},
+  {id:3,type:"WEATHER",level:"high",region:"Caribbean",msg:"Cat-3 hurricane tracking toward Jamaica — landfall est. 36h",time:"18m ago"},
+  {id:4,type:"FLIGHT",level:"moderate",region:"Europe",msg:"ATC strike action: Frankfurt FRA — 40% capacity reduction tomorrow",time:"34m ago"},
+  {id:5,type:"PRICING",level:"low",region:"Sri Lanka",msg:"CMB–LHR fares surged +36% — peak season demand spike",time:"51m ago"},
+  {id:6,type:"GEOPOLITICAL",level:"high",region:"West Africa",msg:"Curfew imposed Lagos, Nigeria — ground ops suspended",time:"1h ago"},
+];
+const NEW_ALERTS=[
+  {id:100,type:"WEATHER",level:"critical",region:"Caribbean",msg:"Hurricane upgraded to Cat-4 — immediate rebooking advisory issued",time:"now"},
+  {id:101,type:"FLIGHT",level:"high",region:"Middle East",msg:"All Ben Gurion TLV departures suspended indefinitely",time:"now"},
+  {id:102,type:"PRICING",level:"moderate",region:"Sri Lanka",msg:"CMB–DXB peak surcharge +18% — book before Thursday",time:"now"},
+];
+
+let activeFilter='ALL', tick=0, liveCount=0;
+let agencyProfile = {};
+
+// ── AUTH CHECK ──
+async function init() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+
+  // Load agency profile
+  const { data: profile } = await supabase
+    .from('agencies')
+    .select('*')
+    .eq('id', session.user.id)
+    .single();
+
+  if (profile) {
+    agencyProfile = profile;
+    applyBranding(profile.agency_name, profile.accent_color, profile.logo_initial);
+    document.getElementById('b-name').value = profile.agency_name;
+    document.getElementById('b-color').value = profile.accent_color;
+    document.getElementById('b-color-hex').textContent = profile.accent_color;
+  }
+
+  document.getElementById('auth-loading').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  initDashboard();
+}
+
+function applyBranding(name, color, initial) {
+  document.title = `${name} · OpsCore`;
+  document.getElementById('header-agency-name').textContent = name;
+  document.getElementById('header-logo-icon').textContent = initial || name.charAt(0);
+  document.getElementById('loading-logo').textContent = initial || name.charAt(0);
+  document.documentElement.style.setProperty('--accent', color);
+  // Derive dim version
+  const hex = color.replace('#','');
+  const r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
+  document.documentElement.style.setProperty('--accent-dim', `rgba(${r},${g},${b},0.12)`);
+  document.documentElement.style.setProperty('--accent-dark', color);
+}
+
+function previewColor(val) {
+  document.getElementById('b-color-hex').textContent = val;
+  applyBranding(
+    document.getElementById('b-name').value || agencyProfile.agency_name,
+    val,
+    (document.getElementById('b-name').value || agencyProfile.agency_name || 'A').charAt(0)
+  );
+}
+
+async function saveBranding() {
+  const name = document.getElementById('b-name').value.trim();
+  const color = document.getElementById('b-color').value;
+  if (!name) return;
+  const initial = name.charAt(0).toUpperCase();
+  applyBranding(name, color, initial);
+  const { data: { session } } = await supabase.auth.getSession();
+  await supabase.from('agencies').update({ agency_name: name, accent_color: color, logo_initial: initial }).eq('id', session.user.id);
+  const saved = document.getElementById('b-saved');
+  saved.style.display = 'inline';
+  setTimeout(() => saved.style.display = 'none', 2000);
+}
+
+async function handleLogout() {
+  await supabase.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+// ── DASHBOARD ──
+function initDashboard() {
+  initTicker(); renderMap(); renderFlights(); renderPricing();
+  renderAlerts(); renderRiskDist(); updateHeader(); startLive();
+  document.getElementById('nav').addEventListener('click', e => {
+    if(e.target.tagName!=='BUTTON') return;
+    document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('active'));
+    e.target.classList.add('active');
+  });
+  document.getElementById('filter-row').addEventListener('click', e => {
+    if(e.target.tagName!=='BUTTON') return;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    e.target.classList.add('active');
+    activeFilter = e.target.dataset.filter;
+    renderAlerts();
+  });
+}
+
+function initTicker() {
+  const el = document.getElementById('ticker');
+  el.innerHTML = [...TICKER_ITEMS,...TICKER_ITEMS].map(t=>`<span class="ticker-item">${t}</span>`).join('');
+}
+function renderMap() {
+  document.getElementById('map-markers').innerHTML = RISK_REGIONS.map(r=>{
+    const col=LEVEL_COLOR[r.level];
+    const pulse=r.level==='critical'?`<circle cx="${r.x}" cy="${r.y}" r="12" fill="none" stroke="${col}" stroke-width="0.6" opacity="0.5"><animate attributeName="r" values="8;22;8" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0;0.6" dur="2.5s" repeatCount="indefinite"/></circle>`:'';
+    return `<g><circle cx="${r.x}" cy="${r.y}" r="18" fill="${col}18" stroke="${col}" stroke-width="0.8" stroke-dasharray="${r.level==='critical'?'3,2':'none'}"/><circle cx="${r.x}" cy="${r.y}" r="4" fill="${col}"/>${pulse}<text x="${r.x}" y="${r.y+30}" text-anchor="middle" fill="${col}" font-size="8" font-family="'DM Mono',monospace" letter-spacing="0.5">${r.label}</text></g>`;
+  }).join('');
+}
+function renderFlights() {
+  document.getElementById('flight-table-body').innerHTML = FLIGHTS.map(f=>{
+    const col=STATUS_COLOR[f.status]||'#fff';
+    const lc=f.load>90?'#ef4444':f.load>75?'#f59e0b':'#10b981';
+    return `<tr><td style="color:var(--text);font-weight:500">${f.flight}</td><td style="color:var(--muted)">${f.from} → ${f.to}</td><td><span class="status-pill" style="color:${col};background:${col}22">${f.status}</span></td><td style="color:var(--muted)">${f.dep}</td><td style="color:var(--muted)">${f.arr}</td><td><div class="load-bar-wrap"><div class="load-bar-bg"><div class="load-bar-fill" style="width:${f.load}%;background:${lc}"></div></div><span style="color:var(--muted);font-size:9px">${f.load}%</span></div></td></tr>`;
+  }).join('');
+}
+function renderPricing() {
+  document.getElementById('pricing-list').innerHTML = PRICING.map(p=>{
+    const up=p.trend==='up'; const col=up?'#ef4444':'#10b981';
+    return `<div class="pricing-row"><span class="pricing-route">${p.route}</span><span class="pricing-base">$${p.base}</span><span class="pricing-current">$${p.current}</span><span class="pricing-pct" style="color:${col};background:${col}22">${up?'▲':'▼'} ${p.pct}</span></div>`;
+  }).join('');
+}
+function renderAlerts() {
+  const filtered = activeFilter==='ALL' ? alerts : alerts.filter(a=>a.type===activeFilter);
+  document.getElementById('alert-feed').innerHTML = filtered.slice(0,6).map((a,i)=>{
+    const col=LEVEL_COLOR[a.level];
+    return `<div class="alert-item card-hover" style="background:${col}08;border:1px solid ${col}22;border-left:2px solid ${col};animation-delay:${i*0.05}s"><span class="alert-icon" style="color:${col}">${TYPE_ICON[a.type]||'◈'}</span><div class="alert-body"><div class="alert-meta"><span class="alert-type" style="color:${col}">${a.type}</span><span class="alert-region">· ${a.region}</span></div><p class="alert-msg">${a.msg}</p></div><span class="alert-time">${a.time}</span></div>`;
+  }).join('');
+}
+function renderRiskDist() {
+  const total=alerts.length;
+  document.getElementById('risk-dist-rows').innerHTML = [['CRITICAL','#ef4444'],['HIGH','#f59e0b'],['MODERATE','#3b82f6'],['LOW','#10b981']].map(([lv,col])=>{
+    const n=alerts.filter(a=>a.level===lv.toLowerCase()).length;
+    const pct=total?(n/total*100).toFixed(1):0;
+    return `<div class="risk-row"><span class="risk-level-label" style="color:${col}">${lv}</span><div class="risk-bar-bg"><div class="risk-bar-fill" style="width:${pct}%;background:${col}"></div></div><span class="risk-count" style="color:${col}">${n}</span></div>`;
+  }).join('');
+}
+function updateHeader() {
+  const cc=alerts.filter(a=>a.level==='critical').length;
+  const hc=alerts.filter(a=>a.level==='high').length;
+  document.getElementById('stat-alerts').textContent = alerts.length;
+  document.getElementById('stat-alerts-sub').textContent = `${cc} critical · ${hc} high`;
+  document.getElementById('critical-count-label').textContent = `${cc} CRITICAL`;
+  document.getElementById('critical-badge').style.display = cc>0?'flex':'none';
+}
+function startLive() {
+  setInterval(()=>{
+    tick++; liveCount+=Math.floor(Math.random()*3);
+    document.getElementById('stat-routes-sub').textContent=`+${12+liveCount%20} new feeds`;
+    if(tick>0&&tick%3===0){
+      alerts=[{...NEW_ALERTS[tick%NEW_ALERTS.length],id:Date.now(),time:'now'},...alerts].slice(0,8);
+      document.getElementById('last-update').textContent='Updated just now';
+      renderAlerts(); renderRiskDist(); updateHeader();
+    } else {
+      const s=(tick%3)*4;
+      document.getElementById('last-update').textContent=s===0?'Updated just now':`Updated ${s}s ago`;
+    }
+  },4000);
+}
+function handleBriefing() {
+  const btn=document.getElementById('briefing-btn');
+  btn.textContent='⟳ GENERATING…'; btn.style.opacity='0.7';
+  setTimeout(()=>{
+    btn.textContent='✓ BRIEFING READY — DOWNLOAD';
+    btn.style.background='linear-gradient(135deg,#10b981,#059669)';
+    btn.style.opacity='1';
+    setTimeout(()=>{
+      btn.textContent='↗ GENERATE BRIEFING REPORT';
+      btn.style.background='linear-gradient(135deg,var(--accent-dark),var(--accent))';
+    },3000);
+  },1800);
+}
+
+init();
+</script>
+</body>
+</html>

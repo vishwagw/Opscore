@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OpsCore · Travel Intelligence for Sri Lanka</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080c14;--surface:#0d1420;--surface2:#111827;
+  --border:rgba(255,255,255,0.07);--border-bright:rgba(255,255,255,0.14);
+  --text:#e8edf5;--muted:#5a6478;
+  --amber:#f59e0b;--gold:#d4a832;
+  --emerald:#10b981;--crimson:#ef4444;--blue:#3b82f6;
+  --font-head:'Syne',sans-serif;--font-mono:'DM Mono',monospace;--font-body:'Instrument Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 40px;height:60px;
+  background:rgba(8,12,20,0.85);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-logo-icon{
+  width:32px;height:32px;background:linear-gradient(135deg,#d4a832,#f59e0b);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-head);font-weight:800;font-size:15px;color:#080c14;
+}
+.nav-logo-name{font-family:var(--font-head);font-weight:700;font-size:16px}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-links a{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:0.8px;transition:color 0.2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{
+  background:linear-gradient(135deg,#d4a832,#f59e0b);
+  color:#080c14;font-family:var(--font-mono);font-size:11px;font-weight:600;
+  letter-spacing:0.8px;padding:8px 20px;border-radius:7px;border:none;cursor:pointer;
+  transition:opacity 0.15s;
+}
+.nav-cta:hover{opacity:0.85}
+
+/* HERO */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:120px 24px 80px;text-align:center;position:relative;overflow:hidden;
+}
+.hero-glow{
+  position:absolute;top:20%;left:50%;transform:translateX(-50%);
+  width:700px;height:400px;
+  background:radial-gradient(ellipse,rgba(212,168,50,0.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-eyebrow{
+  font-family:var(--font-mono);font-size:10px;color:var(--amber);letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:20px;
+  display:flex;align-items:center;gap:8px;justify-content:center;
+}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';width:40px;height:1px;background:rgba(245,158,11,0.3)}
+.hero-title{
+  font-family:var(--font-head);font-weight:800;font-size:clamp(40px,7vw,80px);
+  line-height:1.05;letter-spacing:-1px;margin-bottom:24px;
+  max-width:900px;
+}
+.hero-title .accent{
+  background:linear-gradient(135deg,#d4a832,#f59e0b);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-sub{
+  font-size:18px;color:var(--muted);max-width:560px;line-height:1.7;margin-bottom:48px;
+}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:72px}
+.btn-primary{
+  background:linear-gradient(135deg,#d4a832,#f59e0b);
+  color:#080c14;font-family:var(--font-head);font-weight:700;font-size:14px;
+  padding:14px 32px;border-radius:9px;border:none;cursor:pointer;transition:opacity 0.15s;
+  letter-spacing:0.3px;
+}
+.btn-primary:hover{opacity:0.88}
+.btn-secondary{
+  background:var(--surface);border:1px solid var(--border-bright);
+  color:var(--text);font-family:var(--font-body);font-size:14px;
+  padding:14px 32px;border-radius:9px;cursor:pointer;transition:all 0.2s;
+}
+.btn-secondary:hover{border-color:rgba(255,255,255,0.25)}
+.hero-stats{
+  display:flex;gap:48px;justify-content:center;flex-wrap:wrap;
+  padding:32px 48px;background:var(--surface);border:1px solid var(--border);border-radius:16px;
+}
+.hero-stat-value{font-family:var(--font-head);font-weight:700;font-size:28px;color:var(--amber)}
+.hero-stat-label{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.8px;margin-top:4px}
+
+/* FEATURES */
+.section{padding:100px 24px;max-width:1200px;margin:0 auto}
+.section-label{
+  font-family:var(--font-mono);font-size:10px;color:var(--amber);letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:16px;
+}
+.section-title{font-family:var(--font-head);font-weight:700;font-size:clamp(28px,4vw,44px);margin-bottom:16px;line-height:1.15}
+.section-sub{font-size:16px;color:var(--muted);max-width:560px;line-height:1.7;margin-bottom:60px}
+
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feature-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.feature-card:hover{border-color:var(--border-bright);box-shadow:0 0 30px rgba(212,168,50,0.05)}
+.feature-icon{
+  width:42px;height:42px;border-radius:10px;margin-bottom:18px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+.feature-title{font-family:var(--font-head);font-weight:600;font-size:16px;margin-bottom:10px}
+.feature-desc{font-size:13px;color:var(--muted);line-height:1.7}
+
+/* PRICING */
+.pricing-section{padding:100px 24px;background:linear-gradient(180deg,transparent,var(--surface) 50%,transparent)}
+.pricing-inner{max-width:1100px;margin:0 auto;text-align:center}
+.pricing-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:60px;text-align:left}
+.pricing-card{
+  background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:32px;
+  position:relative;transition:border-color 0.2s;
+}
+.pricing-card:hover{border-color:var(--border-bright)}
+.pricing-card.featured{
+  border-color:rgba(212,168,50,0.4);
+  background:linear-gradient(160deg,rgba(212,168,50,0.06),var(--surface2));
+}
+.pricing-badge{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,#d4a832,#f59e0b);
+  color:#080c14;font-family:var(--font-mono);font-size:9px;font-weight:600;
+  letter-spacing:1px;padding:4px 14px;border-radius:20px;
+}
+.pricing-tier{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:12px}
+.pricing-price{
+  font-family:var(--font-head);font-weight:800;font-size:42px;margin-bottom:4px;
+  display:flex;align-items:flex-start;gap:4px;
+}
+.pricing-price-prefix{font-size:20px;margin-top:6px;color:var(--muted)}
+.pricing-price-suffix{font-family:var(--font-mono);font-size:11px;color:var(--muted);align-self:flex-end;margin-bottom:6px}
+.pricing-desc{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6}
+.pricing-features{display:flex;flex-direction:column;gap:10px;margin-bottom:32px}
+.pricing-feat{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;color:var(--text);
+}
+.feat-check{color:var(--emerald);font-size:12px;flex-shrink:0}
+.feat-x{color:var(--muted);font-size:12px;flex-shrink:0}
+.pricing-btn{
+  width:100%;padding:12px;border-radius:8px;font-family:var(--font-head);
+  font-weight:700;font-size:13px;cursor:pointer;letter-spacing:0.3px;border:none;
+  transition:opacity 0.15s;
+}
+.pricing-btn-primary{background:linear-gradient(135deg,#d4a832,#f59e0b);color:#080c14}
+.pricing-btn-secondary{background:var(--surface);border:1px solid var(--border-bright);color:var(--text)}
+.pricing-btn:hover{opacity:0.85}
+
+/* BRANDS */
+.brands-section{padding:60px 24px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.brands-inner{max-width:900px;margin:0 auto;text-align:center}
+.brands-label{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:1.5px;margin-bottom:32px}
+.brands-row{display:flex;gap:48px;justify-content:center;align-items:center;flex-wrap:wrap}
+.brand-pill{
+  font-family:var(--font-head);font-weight:700;font-size:14px;color:var(--muted);
+  padding:8px 20px;border:1px solid var(--border);border-radius:8px;
+  transition:all 0.2s;
+}
+.brand-pill:hover{color:var(--text);border-color:var(--border-bright)}
+
+/* HOW IT WORKS */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:60px;position:relative}
+.steps::before{
+  content:'';position:absolute;top:22px;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border),var(--border),transparent);
+}
+.step{text-align:center;padding:0 16px}
+.step-num{
+  width:44px;height:44px;border-radius:50%;margin:0 auto 20px;
+  background:var(--surface);border:1px solid var(--border-bright);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-head);font-weight:700;font-size:16px;color:var(--amber);
+  position:relative;z-index:1;
+}
+.step-title{font-family:var(--font-head);font-weight:600;font-size:15px;margin-bottom:8px}
+.step-desc{font-size:12px;color:var(--muted);line-height:1.7}
+
+/* FOOTER */
+footer{
+  padding:48px 40px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;
+  max-width:1200px;margin:0 auto;
+}
+.footer-copy{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.5px}
+.footer-links{display:flex;gap:24px}
+.footer-links a{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.5px;transition:color 0.2s}
+.footer-links a:hover{color:var(--text)}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp 0.7s ease both}
+.delay-1{animation-delay:0.1s}.delay-2{animation-delay:0.2s}.delay-3{animation-delay:0.3s}
+
+@media(max-width:900px){
+  .features-grid,.pricing-cards{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .steps::before{display:none}
+  nav .nav-links{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-icon">O</div>
+    <div>
+      <div class="nav-logo-name">OpsCore</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How It Works</a>
+    <a href="#pricing">Pricing</a>
+  </div>
+  <a href="login.html"><button class="nav-cta">AGENCY LOGIN →</button></a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-eyebrow fade-up">Built for Sri Lanka Travel Agencies</div>
+  <h1 class="hero-title fade-up delay-1">
+    Real-Time Travel<br/><span class="accent">Intelligence</span> Platform
+  </h1>
+  <p class="hero-sub fade-up delay-2">
+    Live global risk alerts, flight monitoring, and dynamic pricing data — purpose-built for travel agencies in Sri Lanka. One dashboard. Every disruption. Always ahead.
+  </p>
+  <div class="hero-btns fade-up delay-3">
+    <a href="login.html"><button class="btn-primary">Get Access — One-Time Fee</button></a>
+    <a href="#features"><button class="btn-secondary">See How It Works</button></a>
+  </div>
+  <div class="hero-stats fade-up delay-3">
+    <div>
+      <div class="hero-stat-value">2,841</div>
+      <div class="hero-stat-label">Routes Monitored</div>
+    </div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div>
+      <div class="hero-stat-value">187</div>
+      <div class="hero-stat-label">Regions Tracked</div>
+    </div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div>
+      <div class="hero-stat-value">94</div>
+      <div class="hero-stat-label">Live Data Feeds</div>
+    </div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div>
+      <div class="hero-stat-value">&lt;4s</div>
+      <div class="hero-stat-label">Alert Latency</div>
+    </div>
+  </div>
+</section>
+
+<!-- BRANDS -->
+<div class="brands-section">
+  <div class="brands-inner">
+    <div class="brands-label">TRUSTED BY AGENCIES ACROSS SRI LANKA</div>
+    <div class="brands-row">
+      <div class="brand-pill">Colombo Travel</div>
+      <div class="brand-pill">Lanka Holidays</div>
+      <div class="brand-pill">Serendib Tours</div>
+      <div class="brand-pill">Kandy Journeys</div>
+      <div class="brand-pill">Pearl Voyages</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-label">Capabilities</div>
+  <h2 class="section-title">Everything your agency needs<br/>to stay one step ahead</h2>
+  <p class="section-sub">From geopolitical alerts to fare surges — OpsCore surfaces what matters before your clients feel it.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(239,68,68,0.12)">◈</div>
+      <div class="feature-title">Global Risk Intelligence</div>
+      <div class="feature-desc">Live geopolitical alerts, health advisories, and conflict zone tracking. Know before your clients book.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(59,130,246,0.12)">▲</div>
+      <div class="feature-title">Flight Safety Monitor</div>
+      <div class="feature-desc">Real-time GDS feed tracking delays, cancellations, and route reductions across 2,800+ routes.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(16,185,129,0.12)">$</div>
+      <div class="feature-title">Dynamic Pricing Engine</div>
+      <div class="feature-desc">Detect fare surges and drops the moment they happen. Lock in the best fares for your clients.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(212,168,50,0.12)">◉</div>
+      <div class="feature-title">Weather Disruption Alerts</div>
+      <div class="feature-desc">Hurricane tracking, monsoon advisories, and seasonal disruption forecasts with 36h lead time.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(139,92,246,0.12)">✦</div>
+      <div class="feature-title">Custom Agency Branding</div>
+      <div class="feature-desc">Your agency name, colours, and logo on the dashboard. White-label ready for client-facing use.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(245,158,11,0.12)">⚡</div>
+      <div class="feature-title">Briefing Report Generator</div>
+      <div class="feature-desc">One-click intelligence briefings you can forward directly to clients or use in team handoffs.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="section-label">Process</div>
+  <h2 class="section-title">Up and running in under 10 minutes</h2>
+  <p class="section-sub">No complex setup. No developers needed. Pay once, use forever.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-title">Purchase License</div>
+      <div class="step-desc">One-time payment. Receive your unique agency license key by email instantly.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-title">Create Account</div>
+      <div class="step-desc">Register with your agency email and activate with your license key.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-title">Customize Branding</div>
+      <div class="step-desc">Add your agency name and brand colour. Your dashboard, your identity.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-title">Go Live</div>
+      <div class="step-desc">Open OpsCore each morning. Your team gets live intelligence all day.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section" id="pricing">
+  <div class="pricing-inner">
+    <div class="section-label" style="text-align:center">Pricing</div>
+    <h2 class="section-title">One price. Yours forever.</h2>
+    <p class="section-sub" style="margin:0 auto 0">No monthly fees. No subscriptions. No surprises. Pay once and your agency has OpsCore for life.</p>
+    <div class="pricing-cards">
+      <div class="pricing-card">
+        <div class="pricing-tier">STARTER</div>
+        <div class="pricing-price">
+          <span class="pricing-price-prefix">Rs.</span>
+          <span>74,900</span>
+        </div>
+        <div class="pricing-price-suffix" style="font-size:11px;color:var(--muted);margin-bottom:12px">one-time · 1 user</div>
+        <div class="pricing-desc">Perfect for solo agents and small boutique agencies.</div>
+        <div class="pricing-features">
+          <div class="pricing-feat"><span class="feat-check">✓</span> Full intelligence dashboard</div>
+          <div class="pricing-feat"><span class="feat-check">✓</span> 1 user login</div>
+          <div class="pricing-feat"><span class="feat-check">✓</span> Custom agency branding</div>
+          <div class="pricing-feat"><span class="feat-check">✓</span> Briefing report generator</div>
+          <div class="pricing-feat"><span class="feat-x">—</span> <span style="color:var(--muted)">Priority support</span></div>
+          <div class="pricing-feat"><span class="feat-x">—</span> <span style="color:var(--muted)">Team seats</span></div>
+        </div>
+        <button class="pricing-btn pricing-btn-secondary" onclick="window.location='login.html'">Get Starter</button>
+      </div>
+
+      <div class="pricing-card featured">
+        <div class="pricing-badge">MOST POPULAR</div>
+        <div class="pricing-tier">AGENCY</div>
+        <div class="pricing-price">
+          <span class="pricing-price-prefix">Rs.</span>
+          <span>99,900</span>
+        </div>
+        <div class="pricing-price-suffix" style="font-size:11px;color:var(--muted);margin-bottom:12px">one-time · up to 5 users</div>
+        <div class="pricing-desc">For established agencies with a full team managing bookings.</div>
+        <div class="pricing-features">
+          <div class="pricing-feat"><span class="feat-check">✓</span> Full intelligence dashboard</div>
+          <div class="pricing-feat"><span class="feat-check">✓</span> Up to 5 user logins</div>
+          <div class="pricing-feat"><span class="feat-check">✓</span> Custom agency branding</div>
+          <div class="pricing-feat"><span class="feat-check">✓</span> Briefing report generator</div>
+          <div class="pricing-feat"><span class="feat-check">✓</span> Priority email support</div>
+          <div class="pricing-feat"><span class="feat-x">—</span> <span style="color:var(--muted)">Unlimited seats</span></div>
+        </div>
+        <button class="pricing-btn pricing-btn-primary" onclick="window.location='login.html'">Get Agency</button>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-tier">ENTERPRISE</div>
+        <div class="pricing-price">
+          <span class="pricing-price-prefix">Rs.</span>
+          <span>149,900</span>
+        </div>
+        <div class="pricing-price-suffix" style="font-size:11px;color:var(--muted);margin-bottom:12px">one-time · unlimited users</div>
+        <div class="pricing-desc">For large agencies or travel groups with multiple branches.</div>
+        <div class="pricing-features">
+          <div class="pricing-feat"><span class="feat-check">✓</span> Full intelligence dashboard</div>
+          <div class="pricing-feat"><span class="feat-check">✓</span> Unlimited user logins</div>
+          <div class="pricing-feat"><span class="feat-check">✓</span> Custom agency branding</div>
+          <div class="pricing-feat"><span class="feat-check">✓</span> Briefing report generator</div>
+          <div class="pricing-feat"><span class="feat-check">✓</span> Priority phone + email support</div>
+          <div class="pricing-feat"><span class="feat-check">✓</span> Unlimited team seats</div>
+        </div>
+        <button class="pricing-btn pricing-btn-secondary" onclick="window.location='login.html'">Get Enterprise</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="nav-logo" style="margin-bottom:8px">
+      <div class="nav-logo-icon">O</div>
+      <div class="nav-logo-name">OpsCore</div>
+    </div>
+    <div class="footer-copy">© 2025 OpsCore · Travel Intelligence Platform · Sri Lanka</div>
+  </div>
+  <div class="footer-links">
+    <a href="login.html">Login</a>
+    <a href="mailto:support@opscore.lk">support@opscore.lk</a>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+  </div>
+</footer>
+
+</body>
+</html>
