@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>OpsCore · Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -377,7 +377,7 @@ tbody td{padding:9px 8px}
 // ── CONFIG ──
 const SUPABASE_URL = 'https://emmlkhhhfthihwpkadcd.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbWxraGhoZnRoaWh3cGthZGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxOTcyMzYsImV4cCI6MjA4ODc3MzIzNn0.2T7ycyEK0WY3aOBwwDtR6rK7EBLKzQ5pS9Ma8q9iX18';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+var db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── DATA ──
 const RISK_REGIONS = [
@@ -414,7 +414,7 @@ let agencyProfile = {};
 
 // ── AUTH CHECK ──
 async function init() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await db.auth.getSession();
   if (!session) { window.location.href = 'login.html'; return; }
 
   // Load agency profile
@@ -466,15 +466,15 @@ async function saveBranding() {
   if (!name) return;
   const initial = name.charAt(0).toUpperCase();
   applyBranding(name, color, initial);
-  const { data: { session } } = await supabase.auth.getSession();
-  await supabase.from('agencies').update({ agency_name: name, accent_color: color, logo_initial: initial }).eq('id', session.user.id);
+  const { data: { session } } = await db.auth.getSession();
+  await db.from('agencies').update({ agency_name: name, accent_color: color, logo_initial: initial }).eq('id', session.user.id);
   const saved = document.getElementById('b-saved');
   saved.style.display = 'inline';
   setTimeout(() => saved.style.display = 'none', 2000);
 }
 
 async function handleLogout() {
-  await supabase.auth.signOut();
+  await db.auth.signOut();
   window.location.href = 'login.html';
 }
 
@@ -575,3 +575,4 @@ init();
 </script>
 </body>
 </html>
+
