@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>OpsCore · Agency Login</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -17,91 +17,34 @@
 }
 body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;display:flex;flex-direction:column}
 .page{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden}
-.bg-glow{
-  position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);
-  width:600px;height:600px;
-  background:radial-gradient(ellipse,rgba(212,168,50,0.06) 0%,transparent 65%);
-  pointer-events:none;
-}
-.card{
-  background:var(--surface);border:1px solid var(--border);border-radius:16px;
-  padding:40px;width:100%;max-width:440px;position:relative;
-}
-.back-link{
-  display:flex;align-items:center;gap:6px;margin-bottom:32px;
-  font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.8px;
-  cursor:pointer;transition:color 0.2s;text-decoration:none;
-}
+.bg-glow{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(ellipse,rgba(212,168,50,0.06) 0%,transparent 65%);pointer-events:none}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;width:100%;max-width:440px;position:relative}
+.back-link{display:flex;align-items:center;gap:6px;margin-bottom:32px;font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.8px;text-decoration:none;transition:color 0.2s}
 .back-link:hover{color:var(--text)}
 .logo-wrap{display:flex;align-items:center;gap:10px;margin-bottom:32px}
-.logo-icon{
-  width:36px;height:36px;background:linear-gradient(135deg,#d4a832,#f59e0b);
-  border-radius:9px;display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-head);font-weight:800;font-size:16px;color:#080c14;
-}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#d4a832,#f59e0b);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:16px;color:#080c14}
 .logo-name{font-family:var(--font-head);font-weight:700;font-size:18px}
 .logo-sub{font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:1px}
 h2{font-family:var(--font-head);font-weight:700;font-size:22px;margin-bottom:8px}
 .subtitle{font-size:13px;color:var(--muted);margin-bottom:32px;line-height:1.6}
-
-/* TABS */
-.tabs{display:flex;gap:0;background:var(--surface2);border-radius:8px;padding:4px;margin-bottom:28px;border:1px solid var(--border)}
-.tab{
-  flex:1;padding:8px;text-align:center;border-radius:5px;cursor:pointer;
-  font-family:var(--font-mono);font-size:10px;letter-spacing:0.8px;color:var(--muted);
-  transition:all 0.2s;background:transparent;border:none;
-}
+.tabs{display:flex;background:var(--surface2);border-radius:8px;padding:4px;margin-bottom:28px;border:1px solid var(--border)}
+.tab{flex:1;padding:8px;text-align:center;border-radius:5px;cursor:pointer;font-family:var(--font-mono);font-size:10px;letter-spacing:0.8px;color:var(--muted);transition:all 0.2s;background:transparent;border:none}
 .tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.3)}
-
-/* FORM */
 .form-group{margin-bottom:18px}
 label{display:block;font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:0.8px;margin-bottom:8px}
-input[type=email],input[type=password],input[type=text]{
-  width:100%;padding:12px 14px;
-  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-  color:var(--text);font-family:var(--font-body);font-size:14px;
-  transition:border-color 0.2s;outline:none;
-}
+input[type=email],input[type=password],input[type=text]{width:100%;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:14px;transition:border-color 0.2s;outline:none}
 input:focus{border-color:rgba(212,168,50,0.5)}
 input::placeholder{color:var(--muted)}
-.submit-btn{
-  width:100%;padding:13px;margin-top:8px;
-  background:linear-gradient(135deg,#d4a832,#f59e0b);
-  border:none;border-radius:9px;cursor:pointer;
-  font-family:var(--font-head);font-weight:700;font-size:14px;
-  color:#080c14;letter-spacing:0.3px;transition:opacity 0.15s;
-}
+.submit-btn{width:100%;padding:13px;margin-top:8px;background:linear-gradient(135deg,#d4a832,#f59e0b);border:none;border-radius:9px;cursor:pointer;font-family:var(--font-head);font-weight:700;font-size:14px;color:#080c14;letter-spacing:0.3px;transition:opacity 0.15s}
 .submit-btn:hover{opacity:0.88}
 .submit-btn:disabled{opacity:0.5;cursor:not-allowed}
-.divider{
-  display:flex;align-items:center;gap:12px;margin:20px 0;
-  font-family:var(--font-mono);font-size:9px;color:var(--muted);
-}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
-
-/* REGISTER EXTRAS */
-.register-note{
-  background:rgba(212,168,50,0.07);border:1px solid rgba(212,168,50,0.2);
-  border-radius:8px;padding:12px 14px;margin-bottom:18px;
-  font-size:12px;color:var(--muted);line-height:1.6;
-}
+.register-note{background:rgba(212,168,50,0.07);border:1px solid rgba(212,168,50,0.2);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:12px;color:var(--muted);line-height:1.6}
 .register-note strong{color:var(--amber)}
-
-/* ERROR / SUCCESS */
-.msg{
-  padding:10px 14px;border-radius:7px;
-  font-size:12px;margin-bottom:16px;display:none;
-}
-.msg-error{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#fca5a5}
-.msg-success{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);color:#6ee7b7}
-
-/* LOADING SPINNER */
+.msg{padding:10px 14px;border-radius:7px;font-size:13px;margin-bottom:16px;line-height:1.5;display:none}
+.msg-error{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5}
+.msg-success{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:#6ee7b7}
 @keyframes spin{to{transform:rotate(360deg)}}
-.spinner{
-  display:inline-block;width:14px;height:14px;border:2px solid rgba(8,12,20,0.3);
-  border-top-color:#080c14;border-radius:50%;animation:spin 0.7s linear infinite;
-  vertical-align:middle;margin-right:6px;
-}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(8,12,20,0.3);border-top-color:#080c14;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
 </style>
 </head>
 <body>
@@ -118,170 +61,260 @@ input::placeholder{color:var(--muted)}
     </div>
 
     <div class="tabs">
-      <button class="tab active" id="tab-login" onclick="switchTab('login')">SIGN IN</button>
-      <button class="tab" id="tab-register" onclick="switchTab('register')">REGISTER</button>
+      <button class="tab active" id="tab-login">SIGN IN</button>
+      <button class="tab" id="tab-register">REGISTER</button>
     </div>
 
-    <!-- ERROR / SUCCESS MESSAGES -->
     <div class="msg msg-error" id="msg-error"></div>
     <div class="msg msg-success" id="msg-success"></div>
 
-    <!-- LOGIN FORM -->
+    <!-- LOGIN -->
     <div id="form-login">
       <h2>Welcome back</h2>
       <p class="subtitle">Sign in to your agency dashboard</p>
       <div class="form-group">
         <label>AGENCY EMAIL</label>
-        <input type="email" id="login-email" placeholder="you@agencyname.lk"/>
+        <input type="email" id="login-email" placeholder="you@agency.lk" autocomplete="email"/>
       </div>
       <div class="form-group">
         <label>PASSWORD</label>
-        <input type="password" id="login-password" placeholder="••••••••"/>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/>
       </div>
-      <button class="submit-btn" id="btn-login" onclick="handleLogin()">SIGN IN TO DASHBOARD</button>
+      <button class="submit-btn" id="btn-login">SIGN IN TO DASHBOARD</button>
     </div>
 
-    <!-- REGISTER FORM -->
+    <!-- REGISTER -->
     <div id="form-register" style="display:none">
       <h2>Create account</h2>
       <p class="subtitle">Register your agency on OpsCore</p>
       <div class="register-note">
-        You need a valid <strong>license key</strong> to register. Purchase one from our website or contact us at <strong>support@opscore.lk</strong>
+        You need a valid <strong>license key</strong> to register. Contact <strong>support@opscore.lk</strong> to purchase one.
       </div>
       <div class="form-group">
         <label>AGENCY NAME</label>
-        <input type="text" id="reg-agency" placeholder="e.g. Colombo Travel & Tours"/>
+        <input type="text" id="reg-agency" placeholder="e.g. Colombo Travel &amp; Tours" autocomplete="organization"/>
       </div>
       <div class="form-group">
-        <label>AGENCY EMAIL</label>
-        <input type="email" id="reg-email" placeholder="you@agencyname.lk"/>
+        <label>EMAIL</label>
+        <input type="email" id="reg-email" placeholder="you@agency.lk" autocomplete="email"/>
       </div>
       <div class="form-group">
         <label>PASSWORD</label>
-        <input type="password" id="reg-password" placeholder="Min. 8 characters"/>
+        <input type="password" id="reg-password" placeholder="Min. 8 characters" autocomplete="new-password"/>
       </div>
       <div class="form-group">
         <label>LICENSE KEY</label>
-        <input type="text" id="reg-license" placeholder="OPSC-XXXX-XXXX-XXXX"/>
+        <input type="text" id="reg-license" placeholder="OPSC-XXXX-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase;letter-spacing:1px"/>
       </div>
-      <button class="submit-btn" id="btn-register" onclick="handleRegister()">CREATE AGENCY ACCOUNT</button>
+      <button class="submit-btn" id="btn-register">CREATE AGENCY ACCOUNT</button>
     </div>
-
   </div>
 </div>
 
 <script>
-// ── CONFIG: Replace these with your Supabase project values ──
-const SUPABASE_URL = 'https://emmlkhhhfthihwpkadcd.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbWxraGhoZnRoaWh3cGthZGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxOTcyMzYsImV4cCI6MjA4ODc3MzIzNn0.2T7ycyEK0WY3aOBwwDtR6rK7EBLKzQ5pS9Ma8q9iX18';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ── CONFIG: Replace these two values with your Supabase credentials ──
+var SUPABASE_URL      = 'https://emmlkhhhfthihwpkadcd.supabase.co';       // e.g. 'https://abcxyz.supabase.co'
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbWxraGhoZnRoaWh3cGthZGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxOTcyMzYsImV4cCI6MjA4ODc3MzIzNn0.2T7ycyEK0WY3aOBwwDtR6rK7EBLKzQ5pS9Ma8q9iX18';
+// long string starting with eyJ...
+// ────────────────────────────────────────────────────────────────────
 
-// Redirect if already logged in
-(async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) window.location.href = 'dashboard.html';
-})();
-
-function switchTab(tab) {
-  document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
-  document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
-  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
-  hideMessages();
-}
+// Use 'db' (not 'supabase') to avoid conflict with the CDN global
+var db = null;
 
 function showError(msg) {
-  const el = document.getElementById('msg-error');
-  el.textContent = msg; el.style.display = 'block';
+  var el = document.getElementById('msg-error');
+  el.textContent = msg;
+  el.style.display = 'block';
   document.getElementById('msg-success').style.display = 'none';
 }
 function showSuccess(msg) {
-  const el = document.getElementById('msg-success');
-  el.textContent = msg; el.style.display = 'block';
+  var el = document.getElementById('msg-success');
+  el.textContent = msg;
+  el.style.display = 'block';
   document.getElementById('msg-error').style.display = 'none';
 }
 function hideMessages() {
   document.getElementById('msg-error').style.display = 'none';
   document.getElementById('msg-success').style.display = 'none';
 }
-function setLoading(btnId, loading) {
-  const btn = document.getElementById(btnId);
+function setLoading(btnId, loading, label) {
+  var btn = document.getElementById(btnId);
   btn.disabled = loading;
-  btn.innerHTML = loading ? '<span class="spinner"></span>Please wait…' : btn.dataset.label;
+  btn.innerHTML = loading ? '<span class="spinner"></span>Please wait\u2026' : label;
 }
 
-document.getElementById('btn-login').dataset.label = 'SIGN IN TO DASHBOARD';
-document.getElementById('btn-register').dataset.label = 'CREATE AGENCY ACCOUNT';
-
-async function handleLogin() {
-  hideMessages();
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  if (!email || !password) return showError('Please fill in all fields.');
-  setLoading('btn-login', true);
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  setLoading('btn-login', false);
-  if (error) return showError(error.message);
-  window.location.href = 'dashboard.html';
-}
-
-async function handleRegister() {
-  hideMessages();
-  const agencyName = document.getElementById('reg-agency').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const password = document.getElementById('reg-password').value;
-  const licenseKey = document.getElementById('reg-license').value.trim().toUpperCase();
-
-  if (!agencyName || !email || !password || !licenseKey)
-    return showError('Please fill in all fields.');
-  if (password.length < 8)
-    return showError('Password must be at least 8 characters.');
-  if (!licenseKey.match(/^OPSC-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/))
-    return showError('Invalid license key format. Expected: OPSC-XXXX-XXXX-XXXX');
-
-  setLoading('btn-register', true);
-
-  // Validate license key exists and is unused
-  const { data: license, error: licErr } = await supabase
-    .from('license_keys')
-    .select('id, is_used')
-    .eq('key', licenseKey)
-    .single();
-
-  if (licErr || !license) {
-    setLoading('btn-register', false);
-    return showError('License key not found. Please check and try again.');
+// ── Boot: init Supabase, check session ──
+window.addEventListener('load', function() {
+  // Check library loaded
+  if (typeof window.supabase === 'undefined') {
+    showError('Could not load Supabase library. Check your internet connection and reload.');
+    return;
   }
-  if (license.is_used) {
-    setLoading('btn-register', false);
-    return showError('This license key has already been used.');
+  // Check credentials were replaced
+  if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+    showError('Setup needed: open login.html and replace YOUR_SUPABASE_URL and YOUR_SUPABASE_ANON_KEY with your credentials from supabase.com \u2192 Project Settings \u2192 API.');
+    document.getElementById('btn-login').disabled = true;
+    document.getElementById('btn-register').disabled = true;
+    return;
   }
-
-  // Create auth user
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) { setLoading('btn-register', false); return showError(error.message); }
-
-  const userId = data.user.id;
-  const slug = agencyName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
-
-  // Create agency profile
-  await supabase.from('agencies').insert({
-    id: userId,
-    agency_name: agencyName,
-    slug,
-    accent_color: '#f59e0b',
-    logo_initial: agencyName.charAt(0).toUpperCase(),
-    license_key: licenseKey,
-    is_active: true
+  // Init client
+  try {
+    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch(e) {
+    showError('Failed to connect to Supabase: ' + e.message);
+    return;
+  }
+  // Redirect if already signed in
+  db.auth.getSession().then(function(result) {
+    if (result.data && result.data.session) {
+      window.location.href = 'dashboard.html';
+    }
   });
+});
 
-  // Mark license as used
-  await supabase.from('license_keys').update({ is_used: true, used_by: userId, used_at: new Date().toISOString() }).eq('key', licenseKey);
+// ── Tab toggle ──
+document.getElementById('tab-login').addEventListener('click', function() {
+  document.getElementById('tab-login').classList.add('active');
+  document.getElementById('tab-register').classList.remove('active');
+  document.getElementById('form-login').style.display = 'block';
+  document.getElementById('form-register').style.display = 'none';
+  hideMessages();
+});
+document.getElementById('tab-register').addEventListener('click', function() {
+  document.getElementById('tab-register').classList.add('active');
+  document.getElementById('tab-login').classList.remove('active');
+  document.getElementById('form-register').style.display = 'block';
+  document.getElementById('form-login').style.display = 'none';
+  hideMessages();
+});
 
-  setLoading('btn-register', false);
-  showSuccess('Account created! Check your email to confirm, then sign in.');
-  setTimeout(() => switchTab('login'), 2500);
+// ── Enter key submits ──
+document.getElementById('login-password').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('reg-license').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doRegister();
+});
+
+// ── Login ──
+document.getElementById('btn-login').addEventListener('click', doLogin);
+
+function doLogin() {
+  if (!db) { showError('Not connected to Supabase. Check your credentials and reload.'); return; }
+  hideMessages();
+  var email    = document.getElementById('login-email').value.trim();
+  var password = document.getElementById('login-password').value;
+  if (!email || !password) { showError('Please enter your email and password.'); return; }
+
+  setLoading('btn-login', true, 'SIGN IN TO DASHBOARD');
+
+  db.auth.signInWithPassword({ email: email, password: password }).then(function(result) {
+    if (result.error) {
+      setLoading('btn-login', false, 'SIGN IN TO DASHBOARD');
+      var msg = result.error.message;
+      if (msg.indexOf('Invalid login') !== -1) return showError('Email or password is incorrect.');
+      if (msg.indexOf('not confirmed') !== -1) return showError('Please confirm your email address first \u2014 check your inbox (and spam folder).');
+      return showError(msg);
+    }
+    window.location.href = 'dashboard.html';
+  }).catch(function(e) {
+    setLoading('btn-login', false, 'SIGN IN TO DASHBOARD');
+    showError('Error: ' + e.message);
+  });
+}
+
+// ── Register ──
+document.getElementById('btn-register').addEventListener('click', doRegister);
+
+function doRegister() {
+  if (!db) { showError('Not connected to Supabase. Check your credentials and reload.'); return; }
+  hideMessages();
+
+  var agencyName = document.getElementById('reg-agency').value.trim();
+  var email      = document.getElementById('reg-email').value.trim();
+  var password   = document.getElementById('reg-password').value;
+  var licenseKey = document.getElementById('reg-license').value.trim().toUpperCase();
+
+  if (!agencyName || !email || !password || !licenseKey) {
+    showError('Please fill in all fields.'); return;
+  }
+  if (password.length < 8) {
+    showError('Password must be at least 8 characters.'); return;
+  }
+  if (!/^OPSC-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(licenseKey)) {
+    showError('Invalid license key format \u2014 it should look like: OPSC-AB12-CD34-EF56'); return;
+  }
+
+  setLoading('btn-register', true, 'CREATE AGENCY ACCOUNT');
+
+  // Step 1: validate license key
+  db.from('license_keys')
+    .select('id, is_used, tier')
+    .eq('key', licenseKey)
+    .single()
+    .then(function(result) {
+      if (result.error || !result.data) {
+        setLoading('btn-register', false, 'CREATE AGENCY ACCOUNT');
+        showError('License key not found. Please double-check and try again.');
+        return;
+      }
+      if (result.data.is_used) {
+        setLoading('btn-register', false, 'CREATE AGENCY ACCOUNT');
+        showError('This license key has already been used by another account.');
+        return;
+      }
+      var tier = result.data.tier || 'AGENCY';
+
+      // Step 2: create account
+      db.auth.signUp({ email: email, password: password }).then(function(signupResult) {
+        if (signupResult.error) {
+          setLoading('btn-register', false, 'CREATE AGENCY ACCOUNT');
+          var msg = signupResult.error.message;
+          if (msg.indexOf('already registered') !== -1) {
+            return showError('This email is already registered. Try signing in instead.');
+          }
+          return showError(msg);
+        }
+
+        var userId = signupResult.data.user.id;
+        var slug   = agencyName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+
+        // Step 3: save agency profile
+        db.from('agencies').insert({
+          id: userId,
+          agency_name: agencyName,
+          slug: slug,
+          accent_color: '#f59e0b',
+          logo_initial: agencyName.charAt(0).toUpperCase(),
+          license_key: licenseKey,
+          license_tier: tier,
+          is_active: true
+        }).then(function() {
+          // Step 4: mark key as used
+          db.from('license_keys').update({
+            is_used: true,
+            used_by: userId,
+            used_at: new Date().toISOString()
+          }).eq('key', licenseKey).then(function() {
+            setLoading('btn-register', false, 'CREATE AGENCY ACCOUNT');
+            showSuccess('\u2713 Account created! Check your email to confirm your address, then sign in.');
+            // Auto-fill email on login tab
+            setTimeout(function() {
+              document.getElementById('tab-login').click();
+              document.getElementById('login-email').value = email;
+            }, 3000);
+          });
+        });
+      }).catch(function(e) {
+        setLoading('btn-register', false, 'CREATE AGENCY ACCOUNT');
+        showError('Error: ' + e.message);
+      });
+    }).catch(function(e) {
+      setLoading('btn-register', false, 'CREATE AGENCY ACCOUNT');
+      showError('Error: ' + e.message);
+    });
 }
 </script>
 </body>
 </html>
+
