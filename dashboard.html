@@ -375,8 +375,8 @@ tbody td{padding:9px 8px}
 
 <script>
 // ── CONFIG ──
-const SUPABASE_URL = 'https://emmlkhhhfthihwpkadcd.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbWxraGhoZnRoaWh3cGthZGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxOTcyMzYsImV4cCI6MjA4ODc3MzIzNn0.2T7ycyEK0WY3aOBwwDtR6rK7EBLKzQ5pS9Ma8q9iX18';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 var db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── DATA ──
@@ -414,28 +414,46 @@ let agencyProfile = {};
 
 // ── AUTH CHECK ──
 async function init() {
-  const { data: { session } } = await db.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
+  try {
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
 
-  // Load agency profile
-  const { data: profile } = await supabase
-    .from('agencies')
-    .select('*')
-    .eq('id', session.user.id)
-    .single();
+    // Load agency profile — if this fails, still show dashboard with defaults
+    try {
+      const { data: profile } = await db
+        .from('agencies')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
 
-  if (profile) {
-    agencyProfile = profile;
-    applyBranding(profile.agency_name, profile.accent_color, profile.logo_initial);
-    document.getElementById('b-name').value = profile.agency_name;
-    document.getElementById('b-color').value = profile.accent_color;
-    document.getElementById('b-color-hex').textContent = profile.accent_color;
+      if (profile) {
+        agencyProfile = profile;
+        applyBranding(profile.agency_name, profile.accent_color, profile.logo_initial);
+        document.getElementById('b-name').value = profile.agency_name;
+        document.getElementById('b-color').value = profile.accent_color || '#f59e0b';
+        document.getElementById('b-color-hex').textContent = profile.accent_color || '#f59e0b';
+      } else {
+        // No profile yet — use email as fallback name
+        const name = session.user.email.split('@')[0];
+        applyBranding(name, '#f59e0b', name.charAt(0).toUpperCase());
+        document.getElementById('b-name').value = name;
+      }
+    } catch (profileErr) {
+      // Profile load failed — show dashboard anyway with email fallback
+      console.warn('Profile load failed:', profileErr);
+      const name = session.user.email ? session.user.email.split('@')[0] : 'Agency';
+      applyBranding(name, '#f59e0b', name.charAt(0).toUpperCase());
+    }
+
+    document.getElementById('auth-loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initDashboard();
+
+  } catch (e) {
+    // Session check failed — redirect to login
+    console.error('Auth error:', e);
+    window.location.href = 'login.html';
   }
-
-  document.getElementById('auth-loading').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-
-  initDashboard();
 }
 
 function applyBranding(name, color, initial) {
@@ -575,4 +593,3 @@ init();
 </script>
 </body>
 </html>
-
